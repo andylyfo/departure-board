@@ -2,6 +2,8 @@ import requests
 import re
 import xmltodict
 
+from typing import Dict, List, Optional, Tuple, Any
+
 
 def removeBrackets(originalName):
     return re.split(r" \(", originalName)[0]
@@ -79,6 +81,11 @@ def ProcessDepartures(journeyConfig, APIOut):
     # get departure station name
     departureStationName = APIElements['soap:Envelope']['soap:Body']['GetDepBoardWithDetailsResponse']['GetStationBoardResult']['lt4:locationName']
 
+    # get destination station name if specified in config
+    destinationStationName: Optional[str] = None
+    if journeyConfig.get("destinationStation"):
+        destinationStationName = journeyConfig["destinationStation"]
+
     # if there are only train services from this station
     if 'lt7:trainServices' in APIElements['soap:Envelope']['soap:Body']['GetDepBoardWithDetailsResponse']['GetStationBoardResult']:
         Services = APIElements['soap:Envelope']['soap:Body']['GetDepBoardWithDetailsResponse']['GetStationBoardResult']['lt7:trainServices']['lt7:service']
@@ -101,7 +108,7 @@ def ProcessDepartures(journeyConfig, APIOut):
     # if there are no trains or buses
     else:
         Services = None
-        return None, departureStationName
+        return None, departureStationName, destinationStationName
 
     # we create a new list of dicts to hold the services
     Departures = [{}] * len(Services)
@@ -197,7 +204,7 @@ def ProcessDepartures(journeyConfig, APIOut):
 
         Departures[servicenum] = thisDeparture
 
-    return Departures, departureStationName
+    return Departures, departureStationName, destinationStationName
 
 
 def loadDeparturesForStation(journeyConfig, apiKey, rows):
@@ -231,6 +238,6 @@ def loadDeparturesForStation(journeyConfig, apiKey, rows):
 
     APIOut = requests.post(apiURL, data=APIRequest, headers=headers).text
 
-    Departures, departureStationName = ProcessDepartures(journeyConfig, APIOut)
+    Departures, departureStationName, destinationStationName = ProcessDepartures(journeyConfig, APIOut)
 
-    return Departures, departureStationName
+    return Departures, departureStationName, destinationStationName

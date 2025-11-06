@@ -150,7 +150,7 @@ class DepartureBoard:
                         return
             
             # Load data
-            departures, station = loadDeparturesForStation(
+            departures, station, dest_station = loadDeparturesForStation(
                 self.config["journey"],
                 self.config["api"]["apiKey"],
                 "10"
@@ -158,6 +158,7 @@ class DepartureBoard:
             
             self.departure_data = departures
             self.station_name = station
+            self.root.title(f"{station}{f' to {dest_station}' if dest_station else ''} - Departures")
             
             # Filter by platform if needed
             platform = self.config["journey"]["screen1Platform"]
