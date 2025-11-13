@@ -73,6 +73,7 @@ class DepartureBoard:
         # Initialize state
         self.bitmap_cache = BitmapTextCache()
         self.current_image: Optional[ImageTk.PhotoImage] = None
+        self.canvas_item_id: Optional[int] = None  # Store canvas item ID to reuse
         self.departure_data: Optional[List[Dict[str, Any]]] = None
         self.station_name: str = ""
         
@@ -136,8 +137,15 @@ class DepartureBoard:
         
         # Convert to PhotoImage and display
         self.current_image = ImageTk.PhotoImage(img)
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.current_image)
-    
+
+        # Reuse canvas item instead of creating new ones
+        if self.canvas_item_id is None:
+            # Create canvas item only once
+            self.canvas_item_id = self.canvas.create_image(0, 0, anchor=tk.NW, image=self.current_image)
+        else:
+            # Update existing canvas item
+            self.canvas.itemconfig(self.canvas_item_id, image=self.current_image)
+
     def _refresh_data(self) -> None:
         """Refresh departure data from API"""
         try:
